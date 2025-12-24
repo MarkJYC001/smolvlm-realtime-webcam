@@ -115,8 +115,13 @@ button {
         </div>
 
         <div>
+            <label>System Prompt</label>
+            <textarea id="systemText">You can reply with main components. Forget the details.</textarea>
+        </div>
+
+        <div>
             <label>Instruction</label>
-            <textarea id="instructionText">What do you see on my screen?</textarea>
+            <textarea id="instructionText">Describe the computer page you see on my screen.</textarea>
         </div>
 
         <div style="flex:1; display:flex; flex-direction:column;">
@@ -142,6 +147,9 @@ button {
 const video = document.getElementById('videoFeed');
 const canvas = document.getElementById('canvas');
 const baseURL = document.getElementById('baseURL');
+
+
+const systemText = document.getElementById('systemText');
 const instructionText = document.getElementById('instructionText');
 const responseText = document.getElementById('responseText');
 const intervalSelect = document.getElementById('intervalSelect');
@@ -152,13 +160,21 @@ let intervalId = null;
 let isProcessing = false;
 
 /* -------- API -------- */
-async function sendChatCompletionRequest(instruction, imageBase64URL) {
+async function sendChatCompletionRequest(systemPrompt, instruction, imageBase64URL) {
     const response = await fetch(`${baseURL.value}/v1/chat/completions`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
             max_tokens: 128,
-            messages: [{
+            messages: [
+            {
+                role: 'system',
+                content: [
+                    { type: 'text', text: systemPrompt },
+                    
+                ]
+            },
+            {
                 role: 'user',
                 content: [
                     { type: 'text', text: instruction },
@@ -209,6 +225,7 @@ async function sendData() {
     if (!img) return;
 
     responseText.value = await sendChatCompletionRequest(
+        systemText.value,
         instructionText.value,
         img
     );
